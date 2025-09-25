@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cleaner Low Productivity Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #8A2BE2; color: white; margin: 0; padding: 20px; display: none; }
+        #loginForm { background-color: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 10px; max-width: 400px; margin: 100px auto; text-align: center; }
+        #loginForm input { width: 100%; padding: 10px; margin-bottom: 15px; border: none; border-radius: 5px; background-color: white; color: #333; }
+        #loginForm button { background-color: white; color: #8A2BE2; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        header { text-align: center; margin-bottom: 20px; font-size: 24px; font-weight: bold; }
+        form { background-color: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 10px; margin-bottom: 20px; max-width: 600px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select { width: 100%; padding: 10px; margin-bottom: 15px; border: none; border-radius: 5px; background-color: white; color: #333; }
+        button { background-color: white; color: #8A2BE2; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-right: 10px; }
+        button:hover { background-color: #f0f0f0; }
+        #dataTable { width: 100%; border-collapse: collapse; background-color: rgba(255, 255, 255, 0.1); border-radius: 10px; overflow: hidden; }
+        #dataTable th, #dataTable td { padding: 10px; text-align: left; border-bottom: 1px solid rgba(255, 255, 255, 0.2); }
+        #dataTable th { background-color: rgba(255, 255, 255, 0.2); font-weight: bold; }
+        #exportBtn { display: block; margin: 20px auto; background-color: white; color: #8A2BE2; }
+    </style>
+</head>
+<body>
+    <div id="loginForm">
+        <h2>Enter Password to Access</h2>
+        <input type="password" id="passwordInput" placeholder="Password">
+        <button onclick="checkPassword()">Login</button>
+        <p id="errorMsg" style="color: red; display: none;">Incorrect password!</p>
+    </div>
+
+    <div id="mainContent">
+        <header>Cleaner Low Productivity</header>
+
+        <form id="reportForm">
+            <label for="companyName">Company Name:</label>
+            <input type="text" id="companyName" value="Justclean company" required>
+
+            <label for="problemType">Problem Type:</label>
+            <select id="problemType" required>
+                <option value="">Select Problem Type</option>
+                <option value="Quality issue">Quality issue</option>
+                <option value="Slow">Slow</option>
+                <option value="Hygiene issue">Hygiene issue</option>
+                <option value="Appearance">Appearance</option>
+                <option value="Bad attitude">Bad attitude</option>
+            </select>
+
+            <label for="employeeName">Employee Name:</label>
+            <input type="text" id="employeeName" required>
+
+            <label for="country">Country:</label>
+            <select id="country" required>
+                <option value="">Select Country</option>
+                <option value="Kuwait">Kuwait</option>
+                <option value="Bahrain">Bahrain</option>
+                <option value="Saudi Arabia">Saudi Arabia</option>
+                <option value="Qatar">Qatar</option>
+                <option value="Oman">Oman</option>
+                <option value="UAE">UAE</option>
+            </select>
+
+            <label for="orderNumber">Order Number:</label>
+            <input type="text" id="orderNumber" required>
+
+            <label for="date">Date:</label>
+            <input type="date" id="date" required>
+
+            <button type="submit">Submit</button>
+        </form>
+
+        <table id="dataTable">
+            <thead>
+                <tr>
+                    <th>Company Name</th>
+                    <th>Problem Type</th>
+                    <th>Employee Name</th>
+                    <th>Country</th>
+                    <th>Order Number</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+
+        <button id="exportBtn" onclick="exportToCSV()">Export to CSV</button>
+    </div>
+
+    <script>
+        let reports = [];
+
+        function checkPassword() {
+            const password = document.getElementById('passwordInput').value;
+            if (password === 'password123') { // غيّر 'password123' لكلمتك السرية
+                document.getElementById('loginForm').style.display = 'none';
+                document.body.style.display = 'block';
+                document.getElementById('mainContent').style.display = 'block';
+            } else {
+                document.getElementById('errorMsg').style.display = 'block';
+            }
+        }
+
+        document.getElementById('reportForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const report = {
+                companyName: document.getElementById('companyName').value,
+                problemType: document.getElementById('problemType').value,
+                employeeName: document.getElementById('employeeName').value,
+                country: document.getElementById('country').value,
+                orderNumber: document.getElementById('orderNumber').value,
+                date: document.getElementById('date').value
+            };
+            reports.push(report);
+            updateTable();
+            document.getElementById('problemType').value = '';
+            document.getElementById('employeeName').value = '';
+            document.getElementById('country').value = '';
+            document.getElementById('orderNumber').value = '';
+            document.getElementById('date').value = '';
+        });
+
+        function updateTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            reports.forEach(report => {
+                const row = tbody.insertRow();
+                row.insertCell(0).textContent = report.companyName;
+                row.insertCell(1).textContent = report.problemType;
+                row.insertCell(2).textContent = report.employeeName;
+                row.insertCell(3).textContent = report.country;
+                row.insertCell(4).textContent = report.orderNumber;
+                row.insertCell(5).textContent = report.date;
+            });
+        }
+
+        function exportToCSV() {
+            if (reports.length === 0) { alert('No data to export!'); return; }
+            let csvContent = 'Company Name,Problem Type,Employee Name,Country,Order Number,Date\n';
+            reports.forEach(report => {
+                csvContent += `${report.companyName},${report.problemType},${report.employeeName},${report.country},${report.orderNumber},${report.date}\n`;
+            });
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'cleaner_reports.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
