@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Professional Utilization Tracker</title>
-<!-- Bootstrap CSS -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <style>
 :root {
@@ -17,40 +16,61 @@ body {
   background: linear-gradient(135deg, var(--primary-purple), var(--secondary-purple));
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
-  padding: 20px;
+  padding: 30px;
   display: flex;
   justify-content: center;
 }
 .container {
   background-color: var(--white);
-  padding: 25px 30px;
-  border-radius: 15px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-  width: 700px;
+  padding: 35px 40px;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+  width: 800px;
 }
-h2 { text-align: center; margin-bottom: 20px; color: var(--primary-purple); }
-label { font-weight: 500; margin-top: 10px; }
-input { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #ccc; }
-button { margin-top: 10px; width: 100%; padding: 10px; border-radius: 8px; border: none; font-size: 16px; cursor: pointer; }
-button:hover { opacity: 0.9; }
+h2 { text-align: center; margin-bottom: 25px; color: var(--primary-purple); font-weight: 700; }
+label { font-weight: 600; margin-top: 15px; font-size: 1.1rem; }
+input, select { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; font-size: 1rem; }
+button { margin-top: 15px; width: 100%; padding: 12px; border-radius: 10px; border: none; font-size: 1.1rem; cursor: pointer; }
+button:hover { opacity: 0.95; }
 #uploadBtn { background-color: var(--secondary-purple); color: var(--white); }
 #deleteBtn { background-color: #dc3545; color: var(--white); }
 #downloadBtn { background-color: var(--primary-purple); color: var(--white); }
-.result { margin-top: 20px; padding: 15px; background-color: var(--light-purple); border-radius: 10px; font-weight: bold; text-align: center; }
-.table-container { margin-top: 20px; max-height: 300px; overflow-y: auto; border: 1px solid #ccc; border-radius: 10px; }
-table { width: 100%; border-collapse: collapse; }
-th, td { padding: 8px; text-align: center; border-bottom: 1px solid #ddd; }
-th { background-color: var(--primary-purple); color: var(--white); }
+.result { margin-top: 25px; padding: 20px; background-color: var(--light-purple); border-radius: 15px; font-weight: bold; text-align: center; font-size: 1.1rem; }
+.table-container { margin-top: 25px; max-height: 400px; overflow-y: auto; border: 1px solid #ccc; border-radius: 15px; }
+table { width: 100%; border-collapse: collapse; font-size: 1rem; }
+th, td { padding: 12px; text-align: center; border-bottom: 1px solid #ddd; }
+th { background-color: var(--primary-purple); color: var(--white); font-size: 1.1rem; }
 </style>
 </head>
 <body>
 <div class="container">
   <h2>Professional Utilization Tracker</h2>
-  <label for="csvFile">Upload CSV File:</label>
-  <input type="file" id="csvFile" accept=".csv">
-  <button id="uploadBtn">Upload & Analyze</button>
-  <button id="deleteBtn">Delete Last Entry</button>
-  <button id="downloadBtn">Download Report</button>
+
+  <!-- Employee Info Inputs -->
+  <div class="row g-4 mb-3">
+    <div class="col-md-3">
+      <label for="employeeName">Employee Name</label>
+      <input type="text" id="employeeName" placeholder="e.g., Mary">
+    </div>
+    <div class="col-md-3">
+      <label for="workedHours">Hours Worked</label>
+      <input type="number" id="workedHours" min="0" step="0.25" placeholder="e.g., 8">
+    </div>
+    <div class="col-md-3">
+      <label for="breakHours">Break Hours</label>
+      <input type="number" id="breakHours" min="0" step="0.25" placeholder="e.g., 1">
+    </div>
+    <div class="col-md-3">
+      <label for="netHours">Net Hours</label>
+      <input type="number" id="netHours" readonly>
+    </div>
+  </div>
+
+  <div class="row g-4 mb-3">
+    <div class="col-md-4"><button id="calculateBtn">Calculate Net Hours</button></div>
+    <div class="col-md-4"><button id="uploadBtn">Upload & Analyze CSV</button></div>
+    <div class="col-md-4"><button id="deleteBtn">Delete Last Entry</button></div>
+  </div>
 
   <div class="result" id="result" style="display:none;"></div>
 
@@ -76,15 +96,20 @@ th { background-color: var(--primary-purple); color: var(--white); }
 <script>
 let results = [];
 
-function normalizeHeader(header){
-  return header.trim().toLowerCase().replace(/\s+/g,'');
+function calculateNetHours(){
+  const worked = parseFloat(document.getElementById('workedHours').value) || 0;
+  const brk = parseFloat(document.getElementById('breakHours').value) || 0;
+  const net = Math.max(0, worked - brk);
+  document.getElementById('netHours').value = net.toFixed(2);
 }
+document.getElementById('calculateBtn').addEventListener('click', calculateNetHours);
+
+function normalizeHeader(header){ return header.trim().toLowerCase().replace(/\s+/g,''); }
 
 function processFile(){
   const fileInput = document.getElementById('csvFile');
   const file = fileInput.files[0];
   if(!file){ alert('Please select a CSV file.'); return; }
-
   const reader = new FileReader();
   reader.onload = function(e){
     const text = e.target.result;
@@ -104,29 +129,27 @@ function processFile(){
     }
 
     results = [];
+    const empName = document.getElementById('employeeName').value.trim();
+    const workedHours = parseFloat(document.getElementById('workedHours').value) || 0;
+    const breakHours = parseFloat(document.getElementById('breakHours').value) || 0;
+    const netHours = Math.max(0, workedHours - breakHours);
 
     for(let i=1;i<lines.length;i++){
       const cells = lines[i].split(/,|\t/).map(c=>c.trim());
       if(cells.length<5) continue;
-
-      const name = cells[nameIdx];
-      const workedHours = parseFloat(cells[callDurationIdx]) || 0;
-      const breakHours = parseFloat(cells[callsCountIdx]) || 0;
+      if(cells[nameIdx]!==empName) continue;
       const answer = parseInt(cells[answerIdx]) || 0;
       const notAnswer = parseInt(cells[notAnswerIdx]) || 0;
-
-      const netHours = workedHours - breakHours;
-      const totalCallDuration = workedHours + (answer*5/60) + (notAnswer*2/60);
+      const totalCallDuration = netHours + (answer*5/60) + (notAnswer*2/60);
       const utilization = netHours>0 ? (totalCallDuration/netHours)*100 : 0;
-
-      results.push({name, workedHours, breakHours, netHours, totalCallDuration:totalCallDuration.toFixed(2), totalCalls:answer+notAnswer, answer, notAnswer, utilization:utilization.toFixed(2)});
+      results.push({name:empName, workedHours, breakHours, netHours, totalCallDuration:totalCallDuration.toFixed(2), totalCalls:answer+notAnswer, answer, notAnswer, utilization:utilization.toFixed(2)});
     }
 
     updateTable();
     fileInput.value='';
     const resDiv = document.getElementById('result');
     resDiv.style.display='block';
-    resDiv.innerHTML = `✅ File processed: ${results.length} employee(s)`;
+    resDiv.innerHTML = `✅ File processed: ${results.length} entry(s) for ${empName}`;
   };
   reader.readAsText(file);
 }
@@ -150,25 +173,6 @@ function updateTable(){
     tbody.appendChild(tr);
   });
 }
-
-document.getElementById('uploadBtn').addEventListener('click', processFile);
-document.getElementById('deleteBtn').addEventListener('click', ()=>{
-  if(results.length===0){ alert('No results to delete'); return; }
-  results.pop();
-  updateTable();
-});
-document.getElementById('downloadBtn').addEventListener('click', ()=>{
-  if(results.length===0){ alert('No results to download'); return; }
-  let csv='Name,Worked Hours,Break Hours,Net Hours,Total Call Duration,Total Calls,Answer,Not Answer,Utilization %\n';
-  results.forEach(r=>{
-    csv+=`${r.name},${r.workedHours},${r.breakHours},${r.netHours},${r.totalCallDuration},${r.totalCalls},${r.answer},${r.notAnswer},${r.utilization}\n`;
-  });
-  const blob = new Blob([csv],{type:'text/csv'});
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = 'utilization_report.csv';
-  link.click();
-});
 </script>
 </body>
 </html>
