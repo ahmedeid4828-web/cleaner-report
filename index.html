@@ -3,51 +3,59 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Utilization Calculator</title>
+<title>Professional Utilization Tracker</title>
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <style>
+:root {
+  --primary-purple: #6a11cb;
+  --secondary-purple: #2575fc;
+  --light-purple: #e2d9f3;
+  --white: #ffffff;
+}
 body {
-  font-family: "Cairo", sans-serif;
-  background: linear-gradient(135deg, #6a11cb, #2575fc);
+  background: linear-gradient(135deg, var(--primary-purple), var(--secondary-purple));
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 20px;
   display: flex;
   justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  margin: 0;
 }
 .container {
-  background: #fff;
+  background-color: var(--white);
   padding: 25px 30px;
   border-radius: 15px;
-  box-shadow: 0px 6px 15px rgba(0,0,0,0.15);
-  width: 600px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  width: 700px;
 }
-h2 { text-align: center; margin-bottom: 20px; color: #333; }
-label { display: block; margin: 10px 0 5px; }
-input, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 8px; }
-button { margin-top: 10px; width: 100%; padding: 10px; background: #2575fc; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; }
-button:hover { background: #1b5edb; }
-.result { margin-top: 20px; font-size: 16px; text-align: center; font-weight: bold; color: #333; background: #f7f7f7; padding: 15px; border-radius: 10px; }
-.table-container { margin-top: 20px; max-height: 300px; overflow-y: auto; }
+h2 { text-align: center; margin-bottom: 20px; color: var(--primary-purple); }
+label { font-weight: 500; margin-top: 10px; }
+input { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #ccc; }
+button { margin-top: 10px; width: 100%; padding: 10px; border-radius: 8px; border: none; font-size: 16px; cursor: pointer; }
+button:hover { opacity: 0.9; }
+#uploadBtn { background-color: var(--secondary-purple); color: var(--white); }
+#deleteBtn { background-color: #dc3545; color: var(--white); }
+#downloadBtn { background-color: var(--primary-purple); color: var(--white); }
+.result { margin-top: 20px; padding: 15px; background-color: var(--light-purple); border-radius: 10px; font-weight: bold; text-align: center; }
+.table-container { margin-top: 20px; max-height: 300px; overflow-y: auto; border: 1px solid #ccc; border-radius: 10px; }
 table { width: 100%; border-collapse: collapse; }
-table, th, td { border: 1px solid #ccc; }
-th, td { padding: 8px; text-align: center; }
-th { background-color: #6a11cb; color: #fff; }
+th, td { padding: 8px; text-align: center; border-bottom: 1px solid #ddd; }
+th { background-color: var(--primary-purple); color: var(--white); }
 </style>
 </head>
 <body>
 <div class="container">
-  <h2>Utilization Calculator</h2>
-  <label for="csvFile">Upload CSV/Excel:</label>
+  <h2>Professional Utilization Tracker</h2>
+  <label for="csvFile">Upload CSV File:</label>
   <input type="file" id="csvFile" accept=".csv">
+  <button id="uploadBtn">Upload & Analyze</button>
+  <button id="deleteBtn">Delete Last Entry</button>
+  <button id="downloadBtn">Download Report</button>
 
-  <button onclick="processFile()">Analyze & Calculate</button>
-  <button onclick="deleteLast()">🗑 Delete Last</button>
-  <button onclick="downloadReport()">⬇️ Download Report</button>
-
-  <div class="result" id="result"></div>
+  <div class="result" id="result" style="display:none;"></div>
 
   <div class="table-container">
-    <table id="dataTable">
+    <table>
       <thead>
         <tr>
           <th>Name</th>
@@ -65,11 +73,14 @@ th { background-color: #6a11cb; color: #fff; }
     </table>
   </div>
 </div>
-
 <script>
 let results = [];
 
-function processFile() {
+function normalizeHeader(header){
+  return header.trim().toLowerCase().replace(/\s+/g,'');
+}
+
+function processFile(){
   const fileInput = document.getElementById('csvFile');
   const file = fileInput.files[0];
   if(!file){ alert('Please select a CSV file.'); return; }
@@ -78,19 +89,22 @@ function processFile() {
   reader.onload = function(e){
     const text = e.target.result;
     const lines = text.split('\n').filter(l => l.trim() !== '');
-    const header = lines[0].split(/,|\t/).map(h=>h.trim());
+    const rawHeader = lines[0].split(/,|\t/);
+    const header = rawHeader.map(normalizeHeader);
 
-    const nameIdx = header.indexOf('Name');
-    const callDurationIdx = header.indexOf('Call Duration');
-    const callsCountIdx = header.indexOf('Calls Count');
-    const answerIdx = header.indexOf('Answer');
-    const notAnswerIdx = header.indexOf('Not Answer');
+    const nameIdx = header.indexOf('name');
+    const callDurationIdx = header.indexOf('callduration');
+    const callsCountIdx = header.indexOf('callscount');
+    const answerIdx = header.indexOf('answer');
+    const notAnswerIdx = header.indexOf('notanswer');
 
-    if([nameIdx, callDurationIdx, callsCountIdx, answerIdx, notAnswerIdx].includes(-1)){
-      alert('CSV missing required columns.'); return;
+    if([nameIdx,callDurationIdx,callsCountIdx,answerIdx,notAnswerIdx].includes(-1)){
+      alert('CSV missing required columns.');
+      return;
     }
 
     results = [];
+
     for(let i=1;i<lines.length;i++){
       const cells = lines[i].split(/,|\t/).map(c=>c.trim());
       if(cells.length<5) continue;
@@ -102,17 +116,17 @@ function processFile() {
       const notAnswer = parseInt(cells[notAnswerIdx]) || 0;
 
       const netHours = workedHours - breakHours;
-      let totalCallDuration = workedHours; // default if no data
-      totalCallDuration += (answer*5/60); // 5 mins buffer
-      totalCallDuration += (notAnswer*2/60); // 2 mins buffer
-
+      const totalCallDuration = workedHours + (answer*5/60) + (notAnswer*2/60);
       const utilization = netHours>0 ? (totalCallDuration/netHours)*100 : 0;
 
-      const obj = {name, workedHours, breakHours, netHours, totalCallDuration:totalCallDuration.toFixed(2), totalCalls:answer+notAnswer, answer, notAnswer, utilization:utilization.toFixed(2)};
-      results.push(obj);
+      results.push({name, workedHours, breakHours, netHours, totalCallDuration:totalCallDuration.toFixed(2), totalCalls:answer+notAnswer, answer, notAnswer, utilization:utilization.toFixed(2)});
     }
+
     updateTable();
     fileInput.value='';
+    const resDiv = document.getElementById('result');
+    resDiv.style.display='block';
+    resDiv.innerHTML = `✅ File processed: ${results.length} employee(s)`;
   };
   reader.readAsText(file);
 }
@@ -135,16 +149,15 @@ function updateTable(){
     `;
     tbody.appendChild(tr);
   });
-  document.getElementById('result').innerHTML='✅ File processed successfully!';
 }
 
-function deleteLast(){
+document.getElementById('uploadBtn').addEventListener('click', processFile);
+document.getElementById('deleteBtn').addEventListener('click', ()=>{
   if(results.length===0){ alert('No results to delete'); return; }
   results.pop();
   updateTable();
-}
-
-function downloadReport(){
+});
+document.getElementById('downloadBtn').addEventListener('click', ()=>{
   if(results.length===0){ alert('No results to download'); return; }
   let csv='Name,Worked Hours,Break Hours,Net Hours,Total Call Duration,Total Calls,Answer,Not Answer,Utilization %\n';
   results.forEach(r=>{
@@ -155,7 +168,7 @@ function downloadReport(){
   link.href = URL.createObjectURL(blob);
   link.download = 'utilization_report.csv';
   link.click();
-}
+});
 </script>
 </body>
 </html>
