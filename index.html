@@ -3,209 +3,198 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Justclean Company - Employee Utilization Tracker</title>
+<title>JustClean Employee Tracker</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <style>
 :root {
     --purple: #6f42c1;
     --black: #000000;
-    --light-purple: #e2d9f3;
+    --white: #ffffff;
 }
 body {
+    background-color: var(--white);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #fff;
-    color: #333;
-}
-.header {
-    background-color: var(--purple);
-    color: var(--black);
     padding: 20px;
-    text-align: center;
-    font-size: 2rem;
-    font-weight: bold;
-    border-radius: 10px;
-    margin-bottom: 20px;
 }
-.container { max-width: 1200px; }
-.card { margin-bottom: 20px; border-radius: 12px; }
-.card-header { background-color: var(--purple); color: var(--black); font-weight: bold; }
-.btn-purple { background-color: var(--purple); color: #fff; border: none; }
+h2 { color: var(--purple); text-align:center; margin-bottom:20px; }
+.card { margin-bottom: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+.btn-purple { background-color: var(--purple); color: var(--white); }
 .btn-purple:hover { background-color: #5a32a3; }
-.table thead { background-color: var(--purple); color: var(--black); }
-.table-striped tbody tr:nth-of-type(odd) { background-color: var(--light-purple); }
-input, select { font-size: 1rem; padding: 10px; border-radius: 8px; }
-.alert { margin-top: 15px; }
+.table thead { background-color: var(--purple); color: var(--white); }
+.table-striped tbody tr:nth-of-type(odd) { background-color: #f2e6ff; }
+.result { font-weight: bold; text-align: center; font-size: 1.2rem; margin-top: 10px; }
+input[type="number"], input[type="text"] { font-size: 1rem; }
 </style>
 </head>
 <body>
+
 <div class="container">
-    <div class="header">Justclean Company</div>
+    <h2>JustClean Company - Employee Utilization Tracker</h2>
 
     <!-- Employee Data Entry -->
-    <div class="card">
-        <div class="card-header">Add Employee Info</div>
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <input type="text" id="employeeName" class="form-control" placeholder="Employee Name">
-                </div>
-                <div class="col-md-3">
-                    <input type="number" id="hoursWorked" class="form-control" placeholder="Hours Worked">
-                </div>
-                <div class="col-md-3">
-                    <input type="number" id="breakHours" class="form-control" placeholder="Break Hours">
-                </div>
-                <div class="col-md-3">
-                    <button class="btn btn-purple w-100" id="calculateBtn">Calculate Net Hours</button>
-                </div>
+    <div class="card p-3">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <input type="text" id="employeeName" class="form-control" placeholder="Employee Name">
             </div>
-            <div class="alert alert-info mt-3" id="resultDiv" style="display:none;">
-                Net Hours: <span id="netHours">0</span>
+            <div class="col-md-3">
+                <input type="number" id="hoursWorked" class="form-control" placeholder="Hours Worked">
             </div>
+            <div class="col-md-3">
+                <input type="number" id="breakHours" class="form-control" placeholder="Break Hours">
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-purple w-100" id="calculateBtn">Calculate Net Hours</button>
+            </div>
+        </div>
+        <div class="result alert alert-info mt-3" id="resultDiv" style="display:none;">
+            Net Hours: <span id="netHours">0</span> hours
         </div>
     </div>
 
     <!-- CSV Upload -->
-    <div class="card">
-        <div class="card-header">Upload Calls CSV</div>
-        <div class="card-body">
-            <input type="file" id="csvFile" class="form-control mb-3" accept=".csv">
-            <button class="btn btn-purple w-100" id="uploadBtn">Upload & Analyze</button>
-            <div class="alert alert-success mt-3" id="uploadResult" style="display:none;"></div>
-            <div class="alert alert-danger mt-3" id="uploadError" style="display:none;"></div>
-        </div>
+    <div class="card p-3">
+        <label for="csvFile">Upload Calls CSV (Name, Call Duration in hours, Calls Count, Answer, Not Answer)</label>
+        <input type="file" id="csvFile" class="form-control mb-2">
+        <button class="btn btn-purple w-100" id="uploadBtn">Upload & Analyze</button>
+        <div class="result alert alert-success mt-3" id="uploadResult" style="display:none;"></div>
+        <div class="result alert alert-danger mt-3" id="uploadError" style="display:none;"></div>
     </div>
 
     <!-- Data Table -->
-    <div class="card" id="dataTableCard" style="display:none;">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            Employee Utilization Data
-            <div>
-                <button class="btn btn-black btn-sm" id="exportBtn">Export CSV</button>
-                <button class="btn btn-danger btn-sm" id="deleteBtn">Delete Last Entry</button>
-            </div>
-        </div>
-        <div class="card-body p-0">
-            <table class="table table-striped mb-0">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Hours Worked</th>
-                        <th>Break Hours</th>
-                        <th>Net Hours</th>
-                        <th>Total Call Duration</th>
-                        <th>Answer</th>
-                        <th>Not Answer</th>
-                        <th>Utilization %</th>
-                        <th>Occupation %</th>
-                    </tr>
-                </thead>
-                <tbody id="dataTableBody"></tbody>
-            </table>
-        </div>
+    <div class="card p-3">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Hours Worked</th>
+                    <th>Break Hours</th>
+                    <th>Net Hours</th>
+                    <th>Total Call Duration</th>
+                    <th>Total Calls</th>
+                    <th>Answer</th>
+                    <th>Not Answer</th>
+                    <th>Utilization %</th>
+                    <th>Occupation %</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="dataTableBody"></tbody>
+        </table>
+        <button class="btn btn-purple mt-2" id="exportBtn">Export to CSV</button>
+        <button class="btn btn-danger mt-2" id="clearAllBtn">Clear All</button>
     </div>
+
 </div>
 
 <script>
 let employeeData = [];
+let callData = {}; // {name_lower: {totalDuration, totalCalls, answer, notAnswer}}
 
-function updateTable() {
+function displayTable() {
     const tbody = document.getElementById('dataTableBody');
     tbody.innerHTML = '';
-    employeeData.forEach(emp => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${emp.name}</td>
-            <td>${emp.hoursWorked}</td>
-            <td>${emp.breakHours}</td>
-            <td>${emp.netHours}</td>
-            <td>${emp.totalCallDuration || 0}</td>
-            <td>${emp.answer || 0}</td>
-            <td>${emp.notAnswer || 0}</td>
-            <td>${emp.utilization || 0}</td>
-            <td>${emp.occupation || 0}</td>
+    employeeData.forEach((e,i)=>{
+        const util = e.netHours >0 ? (e.totalDuration/e.netHours*100).toFixed(2) : 0;
+        const occ = e.netHours >0 ? ((e.totalDuration + e.answer*5/60 + e.notAnswer*2/60)/e.netHours*100).toFixed(2) :0;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${e.name}</td>
+            <td>${e.hoursWorked}</td>
+            <td>${e.breakHours}</td>
+            <td>${e.netHours}</td>
+            <td>${e.totalDuration.toFixed(2)}</td>
+            <td>${e.totalCalls}</td>
+            <td>${e.answer}</td>
+            <td>${e.notAnswer}</td>
+            <td>${util}</td>
+            <td>${occ}</td>
+            <td><button class="btn btn-danger btn-sm" onclick="deleteRow(${i})">Delete</button></td>
         `;
-        tbody.appendChild(row);
+        tbody.appendChild(tr);
     });
-    document.getElementById('dataTableCard').style.display = employeeData.length ? 'block' : 'none';
 }
 
-document.getElementById('calculateBtn').addEventListener('click', () => {
-    const name = document.getElementById('employeeName').value.trim();
-    const hours = parseFloat(document.getElementById('hoursWorked').value);
-    const brk = parseFloat(document.getElementById('breakHours').value);
-    if(!name || isNaN(hours) || isNaN(brk)) return alert('Enter valid data.');
-    const net = hours - brk;
-    document.getElementById('netHours').textContent = net.toFixed(2);
-
-    const existing = employeeData.find(e=>e.name===name);
-    if(existing) {
-        existing.hoursWorked = hours;
-        existing.breakHours = brk;
-        existing.netHours = net;
-    } else {
-        employeeData.push({name, hoursWorked: hours, breakHours: brk, netHours: net});
+function deleteRow(index){
+    if(confirm('Delete this employee?')){
+        employeeData.splice(index,1);
+        displayTable();
     }
-    updateTable();
+}
+
+// Calculate Net Hours
+document.getElementById('calculateBtn').addEventListener('click',()=>{
+    const name=document.getElementById('employeeName').value.trim();
+    const hours=parseFloat(document.getElementById('hoursWorked').value);
+    const brk=parseFloat(document.getElementById('breakHours').value);
+    if(!name || isNaN(hours)|| isNaN(brk) || brk>hours){ alert('Enter valid data'); return;}
+    const net=hours-brk;
+    document.getElementById('netHours').textContent=net.toFixed(2);
+    document.getElementById('resultDiv').style.display='block';
+
+    const existing = employeeData.find(e=>e.name.toLowerCase()===name.toLowerCase());
+    if(existing){
+        existing.hoursWorked=hours;
+        existing.breakHours=brk;
+        existing.netHours=net;
+    }else{
+        employeeData.push({name, hoursWorked:hours, breakHours:brk, netHours:net, totalDuration:0, totalCalls:0, answer:0, notAnswer:0});
+    }
+    displayTable();
 });
 
 // CSV Upload
-document.getElementById('uploadBtn').addEventListener('click', () => {
-    const fileInput = document.getElementById('csvFile');
-    const file = fileInput.files[0];
-    const uploadError = document.getElementById('uploadError');
-    const uploadResult = document.getElementById('uploadResult');
-    uploadError.style.display='none'; uploadResult.style.display='none';
-    if(!file) { uploadError.textContent='Please select a CSV file'; uploadError.style.display='block'; return; }
-
-    const reader = new FileReader();
-    reader.onload = e=>{
-        const content = e.target.result;
-        const lines = content.split('\n').filter(l=>l.trim()!=='');
-        const headers = lines[0].split(',').map(h=>h.trim().toLowerCase());
-        if(!headers.includes('name') || !headers.includes('total call duration') || !headers.includes('answer') || !headers.includes('not answer')) {
-            uploadError.textContent='CSV missing required columns.'; uploadError.style.display='block';
-            return;
-        }
-        for(let i=1;i<lines.length;i++){
-            const row = lines[i].split(',');
-            const dataObj = {};
-            headers.forEach((h,j)=>{dataObj[h]=row[j]||0});
-            const emp = employeeData.find(e=>e.name===dataObj['name']);
-            if(emp){
-                emp.totalCallDuration = parseFloat(dataObj['total call duration']) || 0;
-                emp.answer = parseFloat(dataObj['answer']) || 0;
-                emp.notAnswer = parseFloat(dataObj['not answer']) || 0;
-                emp.utilization = (emp.totalCallDuration/emp.netHours*100).toFixed(2);
-                emp.occupation = ((emp.totalCallDuration+emp.answer*5+emp.notAnswer*2)/emp.netHours*100).toFixed(2);
+document.getElementById('uploadBtn').addEventListener('click',()=>{
+    const file=document.getElementById('csvFile').files[0];
+    if(!file){ alert('Select a CSV file'); return;}
+    const reader=new FileReader();
+    reader.onload=function(e){
+        const lines=e.target.result.split(/\r?\n/);
+        lines.forEach(line=>{
+            if(line.toLowerCase().includes('name')) return;
+            const parts=line.split(',');
+            if(parts.length>=5){
+                const name=parts[0].trim();
+                const duration=parseFloat(parts[1])||0;
+                const calls=parseInt(parts[2])||0;
+                const ans=parseInt(parts[3])||0;
+                const notAns=parseInt(parts[4])||0;
+                const emp=employeeData.find(x=>x.name.toLowerCase()===name.toLowerCase());
+                if(emp){
+                    emp.totalDuration+=duration;
+                    emp.totalCalls+=calls;
+                    emp.answer+=ans;
+                    emp.notAnswer+=notAns;
+                }
             }
-        }
-        updateTable();
-        uploadResult.textContent='CSV uploaded and analyzed successfully.';
-        uploadResult.style.display='block';
+        });
+        displayTable();
+        document.getElementById('uploadResult').style.display='block';
+        document.getElementById('uploadResult').textContent='CSV processed successfully!';
     };
     reader.readAsText(file);
 });
 
-// Delete Last Entry
-document.getElementById('deleteBtn').addEventListener('click', ()=>{
-    if(employeeData.length>0) employeeData.pop();
-    updateTable();
+// Export CSV
+document.getElementById('exportBtn').addEventListener('click',()=>{
+    let csv='Name,Hours Worked,Break Hours,Net Hours,Total Call Duration,Total Calls,Answer,Not Answer,Utilization %,Occupation %\n';
+    employeeData.forEach(e=>{
+        const util = e.netHours >0 ? (e.totalDuration/e.netHours*100).toFixed(2) : 0;
+        const occ = e.netHours >0 ? ((e.totalDuration + e.answer*5/60 + e.notAnswer*2/60)/e.netHours*100).toFixed(2) :0;
+        csv+=`${e.name},${e.hoursWorked},${e.breakHours},${e.netHours},${e.totalDuration.toFixed(2)},${e.totalCalls},${e.answer},${e.notAnswer},${util},${occ}\n`;
+    });
+    const blob=new Blob([csv],{type:'text/csv'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download='employee_metrics.csv'; a.click();
 });
 
-// Export CSV
-document.getElementById('exportBtn').addEventListener('click', ()=>{
-    let csv = 'Name,Hours Worked,Break Hours,Net Hours,Total Call Duration,Answer,Not Answer,Utilization %,Occupation %\n';
-    employeeData.forEach(emp=>{
-        csv += `${emp.name},${emp.hoursWorked},${emp.breakHours},${emp.netHours},${emp.totalCallDuration||0},${emp.answer||0},${emp.notAnswer||0},${emp.utilization||0},${emp.occupation||0}\n`;
-    });
-    const blob = new Blob([csv],{type:'text/csv'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'employee_utilization.csv';
-    a.click();
-    URL.revokeObjectURL(url);
+// Clear All
+document.getElementById('clearAllBtn').addEventListener('click',()=>{
+    if(confirm('Clear all data?')){
+        employeeData=[];
+        displayTable();
+    }
 });
 </script>
 </body>
